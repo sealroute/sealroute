@@ -22,7 +22,7 @@ services:
       # APP_URL: https://${HOST}
       # FORCE_SSL: "true"
     volumes:
-      - sealroute_data:/data/docuseal
+      - sealroute_data:/data/sealroute
 
     # Do NOT expose ports in Dokploy (Traefik handles routing)
     # ports:

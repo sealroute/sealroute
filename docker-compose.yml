@@ -12,7 +12,7 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/sealroute
       FORCE_SSL: ${HOST}
     volumes:
-      - sealroute_data:/data/docuseal
+      - sealroute_data:/data/sealroute
     restart: unless-stopped
 
   postgres:
