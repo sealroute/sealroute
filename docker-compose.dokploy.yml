@@ -1,0 +1,88 @@
+version: "3.8"
+
+services:
+  sealroute:
+    image: sealroute/sealroute:latest
+    pull_policy: always
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      gotenberg:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/sealroute
+
+      GOTENBERG_URL: http://gotenberg:3000
+
+      # IMPORTANT: Set a persistent SECRET_KEY_BASE to avoid re-setup after deploy.
+      # Generate with: openssl rand -hex 64
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:-your_secret_key_here_replace_with_64_hex_chars}
+
+      # APP_URL: https://${HOST}
+      # FORCE_SSL: "true"
+    volumes:
+      - sealroute_data:/data/docuseal
+
+    # Do NOT expose ports in Dokploy (Traefik handles routing)
+    # ports:
+    #   - "3000:3000"
+
+    labels:
+      - "traefik.enable=true"
+
+      - "traefik.http.routers.sealroute.rule=Host(`${HOST}`)"
+      - "traefik.http.routers.sealroute.entrypoints=websecure"
+      - "traefik.http.routers.sealroute.tls=true"
+
+      - "traefik.http.services.sealroute.loadbalancer.server.port=3000"
+
+      # Optional HTTP -> HTTPS redirect
+      # - "traefik.http.routers.sealroute_http.rule=Host(`${HOST}`)"
+      # - "traefik.http.routers.sealroute_http.entrypoints=web"
+      # - "traefik.http.routers.sealroute_http.middlewares=redirect-to-https"
+      # - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+
+    networks:
+      - dokploy-network
+      - internal
+
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sealroute
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sealroute"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - internal
+
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    restart: unless-stopped
+    command:
+      - "gotenberg"
+      - "--api-timeout=60s"
+      - "--libreoffice-restart-after=10"
+    networks:
+      - internal
+
+networks:
+  dokploy-network:
+    external: true
+
+  internal:
+    driver: bridge
+
+volumes:
+  sealroute_data:
+    driver: local
+  pg_data:
+    driver: local

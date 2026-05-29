@@ -1,0 +1,51 @@
+services:
+  app:
+    image: ${APP_IMAGE:-sealroute/sealroute:latest}
+    pull_policy: ${APP_PULL_POLICY:-always}
+    container_name: sealroute-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/sealroute
+      FORCE_SSL: ${HOST}
+    volumes:
+      - sealroute_data:/data/docuseal
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: sealroute-postgres
+    volumes:
+      - sealroute_pg:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sealroute
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:latest
+    container_name: sealroute-caddy
+    command: caddy reverse-proxy --from ${HOST} --to app:3000
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - caddy_data:/data/caddy
+    environment:
+      HOST: ${HOST}
+    restart: unless-stopped
+
+volumes:
+  sealroute_data:
+  sealroute_pg:
+  caddy_data:
