@@ -48,7 +48,6 @@ Key variables:
 
 - `HOST` — your public domain (e.g. `app.example.com`). Caddy uses this to bind and issue TLS.
 - `APP_URL` — public URL (e.g. `https://app.example.com`). Used in outbound email links.
-- `APLINDO_LICENSE_DEFAULT_AMOUNT_IDR` — price (IDR) shown on the in-app `/pricing` and `/license` pages; also the unit price used at checkout. Defaults to `5000000.00`.
 
 See `.env.example` for the full list with comments.
 
