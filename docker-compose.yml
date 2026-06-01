@@ -6,11 +6,22 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      gotenberg:
+        condition: service_started
     env_file:
       - .env
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/sealroute
-      FORCE_SSL: ${HOST}
+      # DOCX -> PDF conversion is handled by the bundled Gotenberg service.
+      GOTENBERG_URL: http://gotenberg:3000
+      # Empty by default (local http). Set FORCE_SSL=true in .env for a domain.
+      FORCE_SSL: ${FORCE_SSL:-}
+    ports:
+      # Bound to localhost so `./deploy.sh up` is reachable at
+      # http://localhost:3000 with no extra setup. In a domain deployment Caddy
+      # still reaches the app over the internal network and the app itself is
+      # never exposed publicly.
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
     volumes:
       - sealroute_data:/data/sealroute
     restart: unless-stopped
@@ -31,9 +42,22 @@ services:
       retries: 10
     restart: unless-stopped
 
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    container_name: sealroute-gotenberg
+    command:
+      - "gotenberg"
+      - "--api-timeout=60s"
+      - "--libreoffice-restart-after=10"
+    restart: unless-stopped
+
   caddy:
     image: caddy:latest
     container_name: sealroute-caddy
+    # Only started for public domain + automatic HTTPS deployments. Enable by
+    # setting COMPOSE_PROFILES=tls in .env (see the production block there).
+    # Local runs skip Caddy entirely and serve http://localhost:3000.
+    profiles: ["tls"]
     command: caddy reverse-proxy --from ${HOST} --to app:3000
     ports:
       - "80:80"

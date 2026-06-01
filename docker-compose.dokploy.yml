@@ -19,6 +19,10 @@ services:
       # Generate with: openssl rand -hex 64
       SECRET_KEY_BASE: ${SECRET_KEY_BASE:-your_secret_key_here_replace_with_64_hex_chars}
 
+      # Secret for the marketing "licenses left" override API
+      # (POST /api/marketing/license_offer). Leave unset to keep it disabled.
+      MARKETING_LICENSE_OFFER_SECRET: ${MARKETING_LICENSE_OFFER_SECRET:-}
+
       # APP_URL: https://${HOST}
       # FORCE_SSL: "true"
     volumes:

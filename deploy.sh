@@ -101,11 +101,12 @@ cmd_up() {
   info "Starting stack"
   "${DC[@]}" up -d
   ok "Stack is up"
-  if [ -n "${HOST:-}" ]; then
-    printf "    Web: https://%s (Caddy will issue a TLS cert automatically)\n" "$HOST"
-  else
-    printf "    HOST is not set in %s -- Caddy needs it to bind to your domain\n" "$ENV_FILE"
-  fi
+  case "${COMPOSE_PROFILES:-}" in
+    *tls*)
+      printf "    Web: https://%s (Caddy will issue a TLS cert automatically)\n" "${HOST:-your.domain}" ;;
+    *)
+      printf "    Web: http://localhost:%s\n" "${APP_PORT:-3000}" ;;
+  esac
   printf "\nFollow logs with: %s logs\n" "$0"
 }
 
