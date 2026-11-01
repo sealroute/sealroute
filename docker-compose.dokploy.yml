@@ -15,16 +15,102 @@ services:
 
       GOTENBERG_URL: http://gotenberg:3000
 
-      # IMPORTANT: Set a persistent SECRET_KEY_BASE to avoid re-setup after deploy.
-      # Generate with: openssl rand -hex 64
-      SECRET_KEY_BASE: ${SECRET_KEY_BASE:-your_secret_key_here_replace_with_64_hex_chars}
+      # Traefik terminates TLS. Signing links and emails use APP_URL.
+      APP_URL: https://${HOST}
+      HOST: ${HOST}
+      FORCE_SSL: "true"
+
+      # REQUIRED: set a unique persistent SECRET_KEY_BASE (openssl rand -hex 64).
+      # No default — omitting this breaks sessions / signed cookies.
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?SECRET_KEY_BASE must be set}
 
       # Secret for the marketing "licenses left" override API
       # (POST /api/marketing/license_offer). Leave unset to keep it disabled.
       MARKETING_LICENSE_OFFER_SECRET: ${MARKETING_LICENSE_OFFER_SECRET:-}
+      PROMO_ENABLED: ${PROMO_ENABLED:-false}
+      PROMO_SLUG: ${PROMO_SLUG:-promo90}
+      PROMO_PRICE_IDR: ${PROMO_PRICE_IDR:-599900}
+      PROMO_ORIGINAL_PRICE_IDR: ${PROMO_ORIGINAL_PRICE_IDR:-5999000}
+      PROMO_ENDS_AT: ${PROMO_ENDS_AT:-}
+      PROMO_QUOTA: ${PROMO_QUOTA:-50}
+      PROMO_MAX_SEATS: ${PROMO_MAX_SEATS:-5}
+      PROMO_SHOW_QUOTA_COUNTS: ${PROMO_SHOW_QUOTA_COUNTS:-false}
+      META_PIXEL_ID: ${META_PIXEL_ID:-}
+      GA_MEASUREMENT_ID: ${GA_MEASUREMENT_ID:-G-HGF6PGC83G}
+      GA_STREAM_ID: ${GA_STREAM_ID:-14987261222}
 
-      # APP_URL: https://${HOST}
-      # FORCE_SSL: "true"
+      # License price (charged + displayed). Normal list price; no promo.
+      APLINDO_LICENSE_API_URL: ${APLINDO_LICENSE_API_URL:-https://license.aplindo.tech}
+      APLINDO_LICENSE_PRODUCT_SLUG: ${APLINDO_LICENSE_PRODUCT_SLUG:-SealRoute}
+      APLINDO_LICENSE_DEFAULT_AMOUNT_IDR: ${APLINDO_LICENSE_DEFAULT_AMOUNT_IDR:-5999000.00}
+      APLINDO_LICENSE_HEARTBEAT_SECONDS: ${APLINDO_LICENSE_HEARTBEAT_SECONDS:-3600}
+      # Marketing list price. When higher than APLINDO_LICENSE_DEFAULT_AMOUNT_IDR,
+      # landing/pricing show strikethrough + discount % (checkout still uses DEFAULT).
+      LICENSE_ORIGINAL_AMOUNT_IDR: ${LICENSE_ORIGINAL_AMOUNT_IDR:-5999000.00}
+      # Hide limited-seat offer UI (banner, hurry copy). Strikethrough still shows
+      # when LICENSE_ORIGINAL_AMOUNT_IDR > APLINDO_LICENSE_DEFAULT_AMOUNT_IDR.
+      LICENSE_LIMITED_OFFER_TOTAL: ${LICENSE_LIMITED_OFFER_TOTAL:-0}
+      # Space-separated origins allowed to iframe /embed/builder and signer pages.
+      EMBED_ALLOWED_ORIGINS: ${EMBED_ALLOWED_ORIGINS:-}
+
+      # Aplindo credit wallets. Set the keys in the Dokploy Environment tab.
+      # Leave blank to disable the matching proxy (VIDA e-sign / e-Meterai).
+      APLINDO_ESIGNATURE_PRODUCT_SLUG: ${APLINDO_ESIGNATURE_PRODUCT_SLUG:-esignature}
+      APLINDO_EMATERAI_PRODUCT_SLUG: ${APLINDO_EMATERAI_PRODUCT_SLUG:-ematerai}
+      APLINDO_ESIGNATURE_KEY: ${APLINDO_ESIGNATURE_KEY:-}
+      APLINDO_EMATERAI_KEY: ${APLINDO_EMATERAI_KEY:-}
+      APLINDO_ISSUANCE_API_KEY: ${APLINDO_ISSUANCE_API_KEY:-}
+
+      CONTACT_EMAIL: ${CONTACT_EMAIL:-buyung@aplindo.tech}
+
+      # VIDA Liveness Web SDK credentials. Without these the signer flow falls
+      # back to plain camera capture with liveness scored by the Fraud API.
+      # Unused when Aplindo returns the token from POST /v1/vida/liveness-token.
+      VIDA_LIVENESS_CLIENT_ID: ${VIDA_LIVENESS_CLIENT_ID:-}
+      VIDA_LIVENESS_CLIENT_SECRET: ${VIDA_LIVENESS_CLIENT_SECRET:-}
+      VIDA_LIVENESS_SIGNING_KEY: ${VIDA_LIVENESS_SIGNING_KEY:-}
+      # Bump the SDK version or point at production hosts without a redeploy of
+      # the image. Blank values fall back to the sandbox defaults in the app.
+      VIDA_LIVENESS_SDK_VERSION: ${VIDA_LIVENESS_SDK_VERSION:-1.1.3}
+      VIDA_LIVENESS_SDK_HOST: ${VIDA_LIVENESS_SDK_HOST:-}
+      VIDA_LIVENESS_API_URL: ${VIDA_LIVENESS_API_URL:-}
+
+      # DEMO=true is for throwaway demo hosts only (not customer data).
+      # DEMO_RESET=true periodically wipes visitor data except DEMO_* names.
+      DEMO: ${DEMO:-false}
+      DEMO_RESET: ${DEMO_RESET:-false}
+      DEMO_RESET_INTERVAL_SECONDS: ${DEMO_RESET_INTERVAL_SECONDS:-3600}
+      DEMO_RESET_PREFIX: ${DEMO_RESET_PREFIX:-DEMO_}
+      # Multi-user demo: stop forced auto-login so users log in manually and can
+      # log out. When auto-login is on, pin the user via DEMO_AUTO_LOGIN_EMAIL.
+      DEMO_AUTO_LOGIN: ${DEMO_AUTO_LOGIN:-false}
+      DEMO_AUTO_LOGIN_EMAIL: ${DEMO_AUTO_LOGIN_EMAIL:-demo@demo.com}
+      # Note under the login form (use \n for line breaks), e.g. test credentials.
+      DEMO_LOGIN_NOTE: ${DEMO_LOGIN_NOTE:-}
+
+      # Marketing YouTube embeds (bare ID or full URL). Blank hides the block.
+      MARKETING_YT_COMMERCIAL_EN: ${MARKETING_YT_COMMERCIAL_EN:-}
+      MARKETING_YT_COMMERCIAL_ID: ${MARKETING_YT_COMMERCIAL_ID:-}
+      MARKETING_YT_VIDA_JOURNEY_EN: ${MARKETING_YT_VIDA_JOURNEY_EN:-}
+      MARKETING_YT_VIDA_JOURNEY_ID: ${MARKETING_YT_VIDA_JOURNEY_ID:-}
+      MARKETING_YT_ENTERPRISE_RBAC_EN: ${MARKETING_YT_ENTERPRISE_RBAC_EN:-}
+      MARKETING_YT_ENTERPRISE_RBAC_ID: ${MARKETING_YT_ENTERPRISE_RBAC_ID:-}
+      MARKETING_YT_USECASE_DEVELOPERS_EN: ${MARKETING_YT_USECASE_DEVELOPERS_EN:-}
+      MARKETING_YT_USECASE_DEVELOPERS_ID: ${MARKETING_YT_USECASE_DEVELOPERS_ID:-}
+      MARKETING_YT_USECASE_HR_EN: ${MARKETING_YT_USECASE_HR_EN:-}
+      MARKETING_YT_USECASE_HR_ID: ${MARKETING_YT_USECASE_HR_ID:-}
+      MARKETING_YT_USECASE_PROCUREMENT_EN: ${MARKETING_YT_USECASE_PROCUREMENT_EN:-}
+      MARKETING_YT_USECASE_PROCUREMENT_ID: ${MARKETING_YT_USECASE_PROCUREMENT_ID:-}
+      MARKETING_YT_USECASE_FINANCE_EN: ${MARKETING_YT_USECASE_FINANCE_EN:-}
+      MARKETING_YT_USECASE_FINANCE_ID: ${MARKETING_YT_USECASE_FINANCE_ID:-}
+      MARKETING_YT_USECASE_LEGAL_EN: ${MARKETING_YT_USECASE_LEGAL_EN:-}
+      MARKETING_YT_USECASE_LEGAL_ID: ${MARKETING_YT_USECASE_LEGAL_ID:-}
+      MARKETING_YT_USECASE_SALES_EN: ${MARKETING_YT_USECASE_SALES_EN:-}
+      MARKETING_YT_USECASE_SALES_ID: ${MARKETING_YT_USECASE_SALES_ID:-}
+      MARKETING_YT_USECASE_OPERATIONS_EN: ${MARKETING_YT_USECASE_OPERATIONS_EN:-}
+      MARKETING_YT_USECASE_OPERATIONS_ID: ${MARKETING_YT_USECASE_OPERATIONS_ID:-}
+      MARKETING_YT_USECASE_COOPERATIVES_EN: ${MARKETING_YT_USECASE_COOPERATIVES_EN:-}
+      MARKETING_YT_USECASE_COOPERATIVES_ID: ${MARKETING_YT_USECASE_COOPERATIVES_ID:-}
     volumes:
       - sealroute_data:/data/sealroute
 
@@ -41,11 +127,15 @@ services:
 
       - "traefik.http.services.sealroute.loadbalancer.server.port=3000"
 
-      # Optional HTTP -> HTTPS redirect
-      # - "traefik.http.routers.sealroute_http.rule=Host(`${HOST}`)"
-      # - "traefik.http.routers.sealroute_http.entrypoints=web"
-      # - "traefik.http.routers.sealroute_http.middlewares=redirect-to-https"
-      # - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      # www → apex permanent redirect (point www DNS A record at the same
+      # Dokploy host as the apex; remove Namecheap URL Forward first).
+      - "traefik.http.routers.sealroute-www.rule=Host(`www.${HOST}`)"
+      - "traefik.http.routers.sealroute-www.entrypoints=websecure"
+      - "traefik.http.routers.sealroute-www.tls=true"
+      - "traefik.http.routers.sealroute-www.middlewares=sealroute-www-redirect"
+      - "traefik.http.middlewares.sealroute-www-redirect.redirectregex.regex=^https?://www\\.(.+)"
+      - "traefik.http.middlewares.sealroute-www-redirect.redirectregex.replacement=https://$${1}"
+      - "traefik.http.middlewares.sealroute-www-redirect.redirectregex.permanent=true"
 
     networks:
       - dokploy-network

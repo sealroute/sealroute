@@ -74,6 +74,12 @@ COMPOSE_PROFILES=tls
 and run `./deploy.sh up` again. The `tls` profile adds Caddy, which binds
 `:80/:443` and issues a Let's Encrypt certificate for `HOST` automatically.
 
+**www subdomain (Dokploy / Traefik):** do **not** use a registrar URL-forward for
+`www` (that breaks HTTPS). Point `www` at the same A record as the apex, then
+use the compose Traefik labels that permanently redirect `www.${HOST}` to
+`https://${HOST}`. After www (and any other live subdomains) serve valid HTTPS,
+you can enable HSTS `includeSubDomains` in Rails `ssl_options`.
+
 Tail the logs while it boots:
 
 ```sh
@@ -114,6 +120,21 @@ You're ready when you see Puma listening on `tcp://0.0.0.0:3000`.
 ## Dokploy / Traefik deployments
 
 If you run on [Dokploy](https://dokploy.com) or any other Traefik-based host, use `docker-compose.dokploy.yml` instead and let Traefik handle TLS / routing. The image and env semantics are identical; the difference is in the labels and the absence of port bindings.
+
+## Embedded builder / form
+
+With an active license, `/js/builder.js` and `/js/form.js` serve the
+`sealroute-builder` and `sealroute-form` web components. Mint a builder JWT
+(HS256, secret = the user's API key) with claim `user_email`, then:
+
+```html
+<script src="https://your.domain/js/builder.js"></script>
+<sealroute-builder data-token="JWT_HERE"></sealroute-builder>
+```
+
+Set `EMBED_ALLOWED_ORIGINS` to a space-separated list of parent page origins
+allowed to iframe the builder and signer pages (CSP `frame-ancestors`). Leave
+blank to keep framing first-party only.
 
 ## Links
 
