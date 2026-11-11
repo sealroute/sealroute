@@ -86,7 +86,7 @@ pull_with_retry() {
 
 cmd_build() {
   warn "This compose file uses a prebuilt image (\$APP_IMAGE)."
-  warn "Set APP_IMAGE in $ENV_FILE to a tag you build/push elsewhere."
+  warn "Set APP_IMAGE in $ENV_FILE to use a different tag."
   warn "Nothing to build locally. Use './deploy.sh pull' to refresh."
 }
 

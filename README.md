@@ -74,12 +74,6 @@ COMPOSE_PROFILES=tls
 and run `./deploy.sh up` again. The `tls` profile adds Caddy, which binds
 `:80/:443` and issues a Let's Encrypt certificate for `HOST` automatically.
 
-**www subdomain (Dokploy / Traefik):** do **not** use a registrar URL-forward for
-`www` (that breaks HTTPS). Point `www` at the same A record as the apex, then
-use the compose Traefik labels that permanently redirect `www.${HOST}` to
-`https://${HOST}`. After www (and any other live subdomains) serve valid HTTPS,
-you can enable HSTS `includeSubDomains` in Rails `ssl_options`.
-
 Tail the logs while it boots:
 
 ```sh
