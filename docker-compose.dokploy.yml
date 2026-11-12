@@ -11,9 +11,11 @@ services:
       gotenberg:
         condition: service_started
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/sealroute
+      # sealroute-db is this stack's own Postgres. A bare "postgres" can resolve
+      # to another app's database on the shared dokploy-network.
+      DATABASE_URL: postgresql://postgres:postgres@sealroute-db:5432/sealroute
 
-      GOTENBERG_URL: http://gotenberg:3000
+      GOTENBERG_URL: http://sealroute-gotenberg:3000
 
       # Traefik terminates TLS. Signing links and emails use APP_URL.
       APP_URL: https://${HOST}
@@ -71,7 +73,9 @@ services:
       timeout: 5s
       retries: 10
     networks:
-      - internal
+      internal:
+        aliases:
+          - sealroute-db
 
   gotenberg:
     image: gotenberg/gotenberg:8
@@ -81,7 +85,9 @@ services:
       - "--api-timeout=60s"
       - "--libreoffice-restart-after=10"
     networks:
-      - internal
+      internal:
+        aliases:
+          - sealroute-gotenberg
 
 networks:
   dokploy-network:
